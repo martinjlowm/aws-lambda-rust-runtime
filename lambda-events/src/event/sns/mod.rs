@@ -56,7 +56,11 @@ pub struct SnsRecord {
     pub other: serde_json::Map<String, Value>,
 }
 
-/// SnsMessage stores information about each record of a SNS event
+/// SnsMessage stores information about SNS **Notification** type messages only.
+///
+/// **Important**: This struct is designed specifically for handling SNS Notification messages
+/// (where `Type` field equals "Notification"). For handling SubscriptionConfirmation or
+/// UnsubscribeConfirmation messages, use [`SnsSubscriptionMessage`] instead.
 #[non_exhaustive]
 #[cfg_attr(feature = "builders", derive(Builder))]
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -98,6 +102,95 @@ pub struct SnsMessage {
     pub unsubscribe_url: String,
 
     /// The Message value specified when the notification was published to the topic.
+    pub message: String,
+
+    /// This is a HashMap of defined attributes for a message. Additional details can be found in the [SNS Developer Guide](https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html)
+    #[serde(deserialize_with = "deserialize_lambda_map")]
+    #[serde(default)]
+    pub message_attributes: HashMap<String, MessageAttribute>,
+
+    /// Catchall to catch any additional fields that were present but not explicitly defined by this struct.
+    /// Enabled with Cargo feature `catch-all-fields`.
+    /// If `catch-all-fields` is disabled, any additional fields that are present will be ignored.
+    #[cfg(feature = "catch-all-fields")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "catch-all-fields")))]
+    #[serde(flatten)]
+    #[cfg_attr(feature = "builders", builder(default))]
+    pub other: serde_json::Map<String, Value>,
+}
+
+/// SnsSubscriptionMessage stores information about SNS SubscriptionConfirmation and
+/// UnsubscribeConfirmation type messages.
+///
+/// Use this struct when handling messages where the `Type` field equals "SubscriptionConfirmation"
+/// or "UnsubscribeConfirmation". For handling Notification messages, use [`SnsMessage`] instead.
+///
+/// # Distinguishing SubscriptionConfirmation from UnsubscribeConfirmation
+///
+/// Both message types use this same struct. You can distinguish them by:
+/// - Checking the `sns_message_type` field ("SubscriptionConfirmation" or "UnsubscribeConfirmation")
+/// - Checking `subscribe_url`: `Some(url)` for SubscriptionConfirmation, `None` for UnsubscribeConfirmation
+///
+/// # Example
+///
+/// ```
+/// use aws_lambda_events::event::sns::SnsSubscriptionMessage;
+///
+/// fn handle_confirmation(msg: SnsSubscriptionMessage) {
+///     if let Some(url) = &msg.subscribe_url {
+///         // SubscriptionConfirmation - visit URL or use token to confirm
+///         println!("Confirm subscription at: {}", url);
+///     } else {
+///         // UnsubscribeConfirmation
+///         println!("Unsubscribe confirmed");
+///     }
+/// }
+/// ```
+#[non_exhaustive]
+#[cfg_attr(feature = "builders", derive(Builder))]
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct SnsSubscriptionMessage {
+    /// The type of SNS message. Will be "SubscriptionConfirmation" or "UnsubscribeConfirmation".
+    #[serde(rename = "Type")]
+    pub sns_message_type: String,
+
+    /// A Universally Unique Identifier, unique for each message published.
+    pub message_id: String,
+
+    /// The Amazon Resource Name (ARN) for the topic that this message was published to.
+    pub topic_arn: String,
+
+    /// The Subject parameter specified when the notification was published to the topic.
+    #[serde(default)]
+    pub subject: Option<String>,
+
+    /// The time (UTC) when the message was sent.
+    pub timestamp: DateTime<Utc>,
+
+    /// Version of the Amazon SNS signature used.
+    pub signature_version: String,
+
+    /// Base64-encoded SHA1withRSA signature of the Message, MessageId, Subject (if present), Type, Timestamp, and TopicArn values.
+    pub signature: String,
+
+    /// The URL to the certificate that was used to sign the message.
+    #[serde(alias = "SigningCertURL")]
+    pub signing_cert_url: String,
+
+    /// A URL that you can visit to confirm the subscription. Present only for SubscriptionConfirmation messages.
+    ///
+    /// For UnsubscribeConfirmation messages, this field will be `None`.
+    #[serde(alias = "SubscribeURL")]
+    #[serde(default)]
+    pub subscribe_url: Option<String>,
+
+    /// A value you can use with the ConfirmSubscription action to confirm the subscription.
+    /// Alternatively, you can simply visit the `subscribe_url`.
+    #[serde(rename = "Token")]
+    pub token: String,
+
+    /// The Message value containing a description of the subscription confirmation.
     pub message: String,
 
     /// This is a HashMap of defined attributes for a message. Additional details can be found in the [SNS Developer Guide](https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html)
@@ -165,7 +258,11 @@ pub struct SnsRecordObj<T: Serialize> {
     pub other: serde_json::Map<String, Value>,
 }
 
-/// Alternate version of `SnsMessage` to use in conjunction with `SnsEventObj<T>` and `SnsRecordObj<T>` for deserializing the message into a struct of type `T`
+/// Alternate version of `SnsMessage` to use in conjunction with `SnsEventObj<T>` and `SnsRecordObj<T>` for deserializing the message into a struct of type `T`.
+///
+/// **Important**: This struct is designed specifically for handling SNS Notification messages
+/// (where `Type` field equals "Notification"). For handling SubscriptionConfirmation or
+/// UnsubscribeConfirmation messages, use [`SnsSubscriptionMessage`] instead.
 #[non_exhaustive]
 #[cfg_attr(feature = "builders", derive(Builder))]
 #[serde_with::serde_as]
@@ -460,6 +557,42 @@ mod test {
 
         let output: String = serde_json::to_string(&parsed).unwrap();
         let reparsed: SnsEventObj<CustStruct> = serde_json::from_slice(output.as_bytes()).unwrap();
+        assert_eq!(parsed, reparsed);
+    }
+
+    #[test]
+    #[cfg(feature = "sns")]
+    fn my_example_sns_subscription_confirmation() {
+        // Test for issue #966: SnsSubscriptionMessage for SubscriptionConfirmation types
+        let data = include_bytes!("../../fixtures/example-sns-subscription-confirmation.json");
+        let parsed: SnsSubscriptionMessage = serde_json::from_slice(data).unwrap();
+
+        assert_eq!("SubscriptionConfirmation", parsed.sns_message_type);
+        assert!(parsed.subscribe_url.is_some());
+        assert_eq!(
+            "https://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription&TopicArn=arn:aws:sns:us-east-1:123456789012:MyTopic&Token=2336412f37fb687f5d51e6e2425dacbbffff",
+            parsed.subscribe_url.as_ref().unwrap()
+        );
+        assert_eq!("2336412f37fb687f5d51e6e2425dacbbffff", parsed.token);
+
+        let output: String = serde_json::to_string(&parsed).unwrap();
+        let reparsed: SnsSubscriptionMessage = serde_json::from_slice(output.as_bytes()).unwrap();
+        assert_eq!(parsed, reparsed);
+    }
+
+    #[test]
+    #[cfg(feature = "sns")]
+    fn my_example_sns_unsubscribe_confirmation() {
+        // Test for UnsubscribeConfirmation messages - subscribe_url should be None
+        let data = include_bytes!("../../fixtures/example-sns-unsubscribe-confirmation.json");
+        let parsed: SnsSubscriptionMessage = serde_json::from_slice(data).unwrap();
+
+        assert_eq!("UnsubscribeConfirmation", parsed.sns_message_type);
+        assert!(parsed.subscribe_url.is_none());
+        assert_eq!("2336412f37fb687f5d51e6e2425dacbbeeee", parsed.token);
+
+        let output: String = serde_json::to_string(&parsed).unwrap();
+        let reparsed: SnsSubscriptionMessage = serde_json::from_slice(output.as_bytes()).unwrap();
         assert_eq!(parsed, reparsed);
     }
 }
