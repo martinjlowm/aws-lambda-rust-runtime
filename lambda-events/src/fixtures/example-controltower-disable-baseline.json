@@ -1,0 +1,51 @@
+{
+  "eventVersion": "1.11",
+  "userIdentity": {
+    "accountId": "123456789012",
+    "invokedBy": "AWS Internal"
+  },
+  "eventTime": "2023-06-15T20:30:00Z",
+  "eventSource": "controltower.amazonaws.com",
+  "eventName": "DisableBaseline",
+  "awsRegion": "us-east-1",
+  "sourceIPAddress": "AWS Internal",
+  "userAgent": "AWS Internal",
+  "requestParameters": null,
+  "responseElements": null,
+  "eventID": "aaaabbbb-1111-2222-3333-444455556666",
+  "readOnly": false,
+  "eventType": "AwsServiceEvent",
+  "managementEvent": true,
+  "recipientAccountId": "123456789012",
+  "serviceEventDetails": {
+    "disableBaselineStatus": {
+      "enabledBaselineDetails": {
+        "arn": "arn:aws:controltower:us-east-1:123456789012:enabledbaseline/ABCDEFGHIJKLMNOP",
+        "parentIdentifier": "arn:aws:organizations::123456789012:ou/o-abcde12345/ou-abcd-12345678",
+        "targetIdentifier": "arn:aws:organizations::123456789012:ou/o-abcde12345/ou-abcd-33333333",
+        "baselineIdentifier": "arn:aws:controltower:us-east-1::baseline/ABCDE12345678",
+        "baselineVersion": "1.0",
+        "statusSummary": {
+          "lastOperationIdentifier": "aaaabbbb-cccc-dddd-eeee-ffffffffffff",
+          "status": "SUCCEEDED"
+        },
+        "parameters": []
+      },
+      "baselineDetails": {
+        "arn": "arn:aws:controltower:us-east-1:123456789012:enabledbaseline/ABCDEFGHIJKLMNOP",
+        "parentIdentifier": "arn:aws:organizations::123456789012:ou/o-abcde12345/ou-abcd-12345678",
+        "targetIdentifier": "arn:aws:organizations::123456789012:ou/o-abcde12345/ou-abcd-33333333",
+        "baselineIdentifier": "arn:aws:controltower:us-east-1::baseline/ABCDE12345678",
+        "baselineVersion": "1.0",
+        "statusSummary": {
+          "lastOperationIdentifier": "aaaabbbb-cccc-dddd-eeee-ffffffffffff",
+          "status": "SUCCEEDED"
+        },
+        "parameters": []
+      },
+      "requestedTimestamp": "2023-06-15T20:00:00Z",
+      "completedTimestamp": "2023-06-15T20:30:00Z"
+    }
+  },
+  "eventCategory": "Management"
+}

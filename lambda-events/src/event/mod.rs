@@ -97,6 +97,11 @@ pub mod config;
 #[cfg_attr(docsrs, doc(cfg(feature = "connect")))]
 pub mod connect;
 
+/// AWS Lambda event definitions for AWS Control Tower lifecycle events.
+#[cfg(feature = "controltower")]
+#[cfg_attr(docsrs, doc(cfg(feature = "controltower")))]
+pub mod controltower;
+
 /// AWS Lambda event definitions for dynamodb.
 #[cfg(feature = "dynamodb")]
 #[cfg_attr(docsrs, doc(cfg(feature = "dynamodb")))]

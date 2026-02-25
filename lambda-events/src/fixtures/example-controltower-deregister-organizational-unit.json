@@ -1,0 +1,28 @@
+{
+  "eventVersion": "1.05",
+  "userIdentity": {
+    "accountId": "123456789012",
+    "invokedBy": "AWS Internal"
+  },
+  "eventTime": "2023-06-15T20:30:00Z",
+  "eventSource": "controltower.amazonaws.com",
+  "eventName": "DeregisterOrganizationalUnit",
+  "awsRegion": "us-east-1",
+  "sourceIPAddress": "AWS Internal",
+  "userAgent": "AWS Internal",
+  "eventID": "aaaabbbb-1111-2222-3333-444455556666",
+  "readOnly": false,
+  "eventType": "AwsServiceEvent",
+  "serviceEventDetails": {
+    "deregisterOrganizationalUnitStatus": {
+      "state": "SUCCEEDED",
+      "message": "AWS Control Tower successfully deregistered an organizational unit.",
+      "organizationalUnit": {
+        "organizationalUnitName": "Production",
+        "organizationalUnitId": "ou-abcd-33333333"
+      },
+      "requestedTimestamp": "2023-06-15T20:00:00Z",
+      "completedTimestamp": "2023-06-15T20:30:00Z"
+    }
+  }
+}

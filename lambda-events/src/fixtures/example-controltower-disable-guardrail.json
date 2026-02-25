@@ -1,0 +1,36 @@
+{
+  "eventVersion": "1.05",
+  "userIdentity": {
+    "accountId": "123456789012",
+    "invokedBy": "AWS Internal"
+  },
+  "eventTime": "2023-06-15T20:30:00Z",
+  "eventSource": "controltower.amazonaws.com",
+  "eventName": "DisableGuardrail",
+  "awsRegion": "us-east-1",
+  "sourceIPAddress": "AWS Internal",
+  "userAgent": "AWS Internal",
+  "eventID": "aaaabbbb-1111-2222-3333-444455556666",
+  "readOnly": false,
+  "eventType": "AwsServiceEvent",
+  "serviceEventDetails": {
+    "disableGuardrailStatus": {
+      "organizationalUnits": [
+        {
+          "organizationalUnitName": "Sandbox",
+          "organizationalUnitId": "ou-abcd-12345678"
+        }
+      ],
+      "guardrails": [
+        {
+          "guardrailId": "AWS-GR_ENCRYPTED_VOLUMES",
+          "guardrailBehavior": "DETECTIVE"
+        }
+      ],
+      "state": "SUCCEEDED",
+      "message": "AWS Control Tower successfully disabled a guardrail on an organizational unit.",
+      "requestTimestamp": "2023-06-15T20:00:00Z",
+      "completedTimestamp": "2023-06-15T20:30:00Z"
+    }
+  }
+}

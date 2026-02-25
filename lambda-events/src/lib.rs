@@ -112,6 +112,11 @@ pub use event::config;
 #[cfg_attr(docsrs, doc(cfg(feature = "connect")))]
 pub use event::connect;
 
+/// AWS Lambda event definitions for AWS Control Tower lifecycle events.
+#[cfg(feature = "controltower")]
+#[cfg_attr(docsrs, doc(cfg(feature = "controltower")))]
+pub use event::controltower;
+
 /// AWS Lambda event definitions for dynamodb.
 #[cfg(feature = "dynamodb")]
 #[cfg_attr(docsrs, doc(cfg(feature = "dynamodb")))]
